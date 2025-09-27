@@ -1,6 +1,6 @@
 {
-  "name": "श्री हरि जप",
-  "short_name": "Hari Japa",
+  "name": "श्री राधा",
+  "short_name": "Naam Japa",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#000000",
@@ -19,3 +19,4 @@
     }
   ]
 }
+
