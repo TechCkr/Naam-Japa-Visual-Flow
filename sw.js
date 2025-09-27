@@ -2,7 +2,7 @@
 // Version History:
 // v1.0.0 - Initial Release
 
-const CACHE_NAME = 'hari-japa-v1.0.1'; // 📝 Bump this when you update the app
+const CACHE_NAME = 'hari-japa-v1.0.2'; // 📝 Bump this when you update the app
 
 const ASSETS = [
   './',
@@ -39,4 +39,5 @@ self.addEventListener('fetch', event => {
     caches.match(event.request).then(response => response || fetch(event.request))
   );
 });
+
 
