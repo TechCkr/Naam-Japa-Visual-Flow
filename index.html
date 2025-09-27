@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>श्री हरि</title>
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+
+<style>
+body {
+  font-family: system-ui, Segoe UI, Roboto, Arial;
+  margin: 0;
+  background-color: black;
+  color: white;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Display area */
+#display {
+  flex: 1;
+  padding: 20px;
+  border-top: 1px solid #555;
+  background: #111;
+  color: #FF9933;
+  font-family: 'Mangal';
+  overflow: hidden;
+  position: relative;
+}
+
+#display span {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 1;
+  transition: transform linear, opacity linear;
+}
+
+/* Controls */
+.controls {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 2vh 3vw;
+  height: 50vh; /* Half screen */
+  border-top: 1px solid #444;
+  background: #000;
+}
+
+input[type="text"], input[type="number"], button {
+  width: 100%;
+  padding: 18px;
+  font-size: 24px;
+  border-radius: 10px;
+  border: 1px solid #555;
+  text-align: center;
+  background: #222;
+  color: white;
+  box-sizing: border-box;
+}
+
+button {
+  cursor: pointer;
+  background: #333;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+</style>
+</head>
+
+<body>
+
+<!-- Flowing text display -->
+<div id="display"></div>
+
+<!-- Controls -->
+<div class="controls">
+  <input id="word" type="text" value="राधा" placeholder="Word">
+  <input id="interval" type="number" value="1000" min="100" placeholder="Interval (ms)">
+  <input id="speed" type="number" value="4000" min="500" placeholder="Flow Duration (ms)">
+  <input id="fontsize" type="number" value="96" min="10" placeholder="Font Size (px)">
+  <input id="repetitions" type="number" value="108" min="1" placeholder="Repetitions">
+  <button id="start">Start</button>
+  <button id="stop" disabled>Stop</button>
+  <button id="clear">Clear</button>
+</div>
+
+<script>
+const display = document.getElementById('display');
+const wordInput = document.getElementById('word');
+const intervalInput = document.getElementById('interval');
+const speedInput = document.getElementById('speed');
+const fontSizeInput = document.getElementById('fontsize');
+const repetitionsInput = document.getElementById('repetitions');
+const startBtn = document.getElementById('start');
+const stopBtn = document.getElementById('stop');
+const clearBtn = document.getElementById('clear');
+
+let timer = null;
+let count = 0;
+let maxRepetitions = null;
+
+function addWord() {
+  const w = wordInput.value;
+  if (!w) return;
+
+  count += 1;
+
+  const span = document.createElement('span');
+  span.textContent = w;
+  span.style.fontSize = `${Number(fontSizeInput.value) || 48}px`;
+  const duration = Number(speedInput.value);
+  span.style.transition = `transform ${duration}ms linear, opacity ${duration}ms linear`;
+
+  display.appendChild(span);
+
+  requestAnimationFrame(() => {
+    span.style.transform = `translateX(-50%) translateY(-${display.offsetHeight}px)`;
+    span.style.opacity = 0;
+  });
+
+  span.addEventListener('transitionend', () => {
+    if (span.parentElement) display.removeChild(span);
+
+    if (count >= maxRepetitions && display.childElementCount === 0) {
+      const doneSpan = document.createElement('span');
+      doneSpan.textContent = "🙏 Done! 🙏";
+      doneSpan.style.bottom = "50%";
+      doneSpan.style.left = "50%";
+      doneSpan.style.transform = "translateX(-50%)";
+      display.appendChild(doneSpan);
+    }
+  });
+
+  if (count >= maxRepetitions) {
+    clearInterval(timer);
+    timer = null;
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+  }
+}
+
+startBtn.addEventListener('click', () => {
+  const interval = Number(intervalInput.value);
+  maxRepetitions = repetitionsInput.value ? Number(repetitionsInput.value) : null;
+  if (!interval || interval < 100 || !maxRepetitions) {
+    alert('Enter valid interval, font size, and repetitions.'); 
+    return; 
+  }
+
+  if (timer) clearInterval(timer);
+  count = 0;
+  display.innerHTML = '';
+
+  timer = setInterval(addWord, interval);
+  startBtn.disabled = true;
+  stopBtn.disabled = false;
+});
+
+stopBtn.addEventListener('click', () => {
+  if (timer) clearInterval(timer);
+  timer = null;
+  startBtn.disabled = false;
+  stopBtn.disabled = true;
+});
+
+clearBtn.addEventListener('click', () => {
+  display.innerHTML = '';
+  count = 0;
+});
+
+window.addEventListener('beforeunload', () => { if (timer) clearInterval(timer); });
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js')
+    .then(() => console.log('Service Worker registered'))
+    .catch(err => console.log('SW registration failed:', err));
+}
+</script>
+
+</body>
+</html>
